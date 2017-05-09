@@ -38,7 +38,7 @@ import java.util.Map;
 
 public class MorgenlandQR extends AppCompatActivity {
     private Button scan_btn;
-    private Button save_btn;
+    private Button sync_btn;
     private Button showTable_btn;
     private Button clear_table_btn;
     private TextView scan_anzahl;
@@ -70,44 +70,11 @@ public class MorgenlandQR extends AppCompatActivity {
             }
         });
         //*END
-        //*START Save Button
-        save_btn = (Button) findViewById(R.id.save_btn);
-        save_btn.setOnClickListener(new View.OnClickListener() {
+        //*START sync NUEUER INTENT !!!!!
+        sync_btn = (Button) findViewById(R.id.sync_btn);
+        sync_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Calendar c = Calendar.getInstance();
-                SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
-                String formattedDate = df.format(c.getTime());
-                //****NEU: Save arrayList to 'QRText' Table. First check if this entry already exists
-                if (arrayList.size()>0) {
-                    Cursor cursor = null;
-                    for (int i = 0; i < arrayList.size(); i++) {
-                        //Check if this entry exists in Table 'QRText'
-                        String [] columns = {"qrText"};
-                        //**SELECT qrText FROM QRText WHERE qrText = 'someText' and datum = '08-05-2017'
-                        cursor = db.query(DbHelper.TABLE_QRText, columns, DbHelper.COLUMN_QRText+" = '"+arrayList.get(i)+"' and "
-                                +DbHelper.COLUMN_DATUM+" = '"+formattedDate+"'",
-                                null,null,null,null);
-                        //cursor.moveToFirst returns false: if cursor is emtpy
-                        // returns true: if cursor not empty & operation is a succes
-                        if (cursor.moveToFirst()){
-                            Toast.makeText(MorgenlandQR.this, "already in table: "+cursor.getString(0), Toast.LENGTH_SHORT).show();
-                        }else {
-                            ContentValues contentValues = new ContentValues();
-                            contentValues.put(DbHelper.COLUMN_QRText, arrayList.get(i));
-                            contentValues.put(DbHelper.COLUMN_DATUM, formattedDate);
-                            //Datum generieren
-                            Long insertId = db.insert(DbHelper.TABLE_QRText, null, contentValues);
-                            if (insertId == -1) {
-                                Toast.makeText(MorgenlandQR.this, "Fehler, konnte Daten nicht local speichern", Toast.LENGTH_SHORT).show();
-                            } else
-                                Toast.makeText(MorgenlandQR.this, "Daten gespeichert. ID: " + insertId, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                    cursor.close();
-                }else{
-                    Toast.makeText(MorgenlandQR.this, " Deine Liste ist leer", Toast.LENGTH_SHORT).show();
-                }
             }
         });
         //*START Show Table Button
@@ -115,32 +82,8 @@ public class MorgenlandQR extends AppCompatActivity {
         showTable_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //**SELECT id, qrText, timestamp from QRText WHERE datum = '08-05-2017'
-                String[] columns = {"id","qrText", "timestamp", "datum"};
-                Cursor cursor= db.query(DbHelper.TABLE_QRText,columns, null,null,null,null,null);  //<--- WHERE daum = '+datum-Variable+'
-
-                int idIndex = cursor.getColumnIndex(DbHelper.COLUMN_ID);
-                int qrTextIndex = cursor.getColumnIndex(DbHelper.COLUMN_QRText);
-                int timestampIndex = cursor.getColumnIndex(DbHelper.COLUMN_TIMESTAMP);
-                int datumIndex = cursor.getColumnIndex(DbHelper.COLUMN_DATUM);
-                Log.d("LOG", "IDIndx: "+idIndex);
-                Log.d("LOG", "qrIndex: "+qrTextIndex);
-                Log.d("LOG", "timestampIndex: "+timestampIndex);
-                Log.d("LOG", "datumIndex: "+datumIndex);
-
-                arrayList.clear();
-                if (cursor.getCount() > 0){ //number of Rows in cursor
-                    while (cursor.moveToNext()){
-                        arrayList.add(cursor.getString(qrTextIndex));
-                        Toast.makeText(MorgenlandQR.this,cursor.getString(idIndex)+", "+cursor.getString(qrTextIndex)+
-                                ", "+cursor.getString(timestampIndex)+", "+cursor.getString(datumIndex), Toast.LENGTH_SHORT).show();
-                    }
-                }else{
-                    Toast.makeText(MorgenlandQR.this,"Tabelle war leer",Toast.LENGTH_SHORT).show();
-                }
-                //Update listView
-                listAdapter.notifyDataSetChanged();
-                cursor.close();
+                Intent homeInt = new Intent(MorgenlandQR.this, Home_A.class);
+                startActivity(homeInt);
             }
         });
         //*END
@@ -152,6 +95,7 @@ public class MorgenlandQR extends AppCompatActivity {
                 db.delete(DbHelper.TABLE_QRText,null,null); //clear Table
                 arrayList.clear(); //clear ListView
                 listAdapter.notifyDataSetChanged(); //Update
+                scan_anzahl.setText("Scan Anzahl: "+arrayList.size());
             }
         });
         //*END
@@ -164,13 +108,34 @@ public class MorgenlandQR extends AppCompatActivity {
 
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position , long id) {
                 String s = "LONG geklickt: "+ String.valueOf(parent.getItemAtPosition(position));
                 Toast.makeText(MorgenlandQR.this, s, Toast.LENGTH_SHORT).show();
                 return true;
             }
         });
         //*END
+    }
+
+    @Override  //SHOW Table Content onStart
+    protected void onStart() {
+        super.onStart();
+        //**SELECT id, qrText, timestamp from QRText WHERE datum = '08-05-2017'
+        String[] columns = {"id","qrText", "timestamp", "datum"};
+        Cursor cursor= db.query(DbHelper.TABLE_QRText,columns, null,null,null,null,null);  //<--- WHERE daum = '+datum-Variable+'
+        int qrTextIndex = cursor.getColumnIndex(DbHelper.COLUMN_QRText);
+
+        arrayList.clear();
+        if (cursor.getCount() > 0){ //number of Rows in cursor
+            while (cursor.moveToNext()){
+                arrayList.add(cursor.getString(qrTextIndex));
+            }
+        }else{
+            Toast.makeText(MorgenlandQR.this,"Tabelle ist leer",Toast.LENGTH_SHORT).show();
+        }
+        listAdapter.notifyDataSetChanged();
+        scan_anzahl.setText("Scan Anzahl: "+arrayList.size());
+        cursor.close();
     }
 
     @Override
@@ -180,48 +145,37 @@ public class MorgenlandQR extends AppCompatActivity {
             if (result.getContents() == null){
                 Toast.makeText(this, "Du hast das Scannen abgebrochen", Toast.LENGTH_SHORT).show();
             }else {
-                //result.getContents()  enthält den String aus dem QR-Scan
                 final String qrText = result.getContents();
-                Toast.makeText(this, qrText, Toast.LENGTH_SHORT).show();
+                //BEI jedem Scan -> prüfen ob qrText in Tabelle existiert -> if yes: nix machen
+                //                                                        ->if no: eintragen ->dann in arrayList eintragen
+                Calendar c = Calendar.getInstance();
+                SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
+                String formattedDate = df.format(c.getTime());
 
-                //*Add new Item to ListView
-                arrayList.add(qrText+"update"); //1.Add Item To Array
-                listAdapter.notifyDataSetChanged(); //2.Notify Adapter(which then gives the Item-array to the ListView)
-                //*END
+                        String [] columns = {"qrText"};
+                        //**SELECT qrText FROM QRText WHERE qrText = 'someText'
+                        Cursor cursor = db.query(DbHelper.TABLE_QRText, columns, DbHelper.COLUMN_QRText+" = '"+qrText+"'",
+                                null,null,null,null);
 
-                //*START POST data to PHP-Script
-                RequestQueue queue = Volley.newRequestQueue(this);
-                String url = "http://morgenland-teppiche.com/warenbestand/liste.php";
+                        if (cursor.moveToFirst()){ //false: if cursor is emtpy. true: if cursor not empty & operation is a succes
+                            Toast.makeText(MorgenlandQR.this, "already in table: "+cursor.getString(0), Toast.LENGTH_SHORT).show();
+                        }else {
+                            ContentValues contentValues = new ContentValues();
+                            contentValues.put(DbHelper.COLUMN_QRText, qrText);
+                            contentValues.put(DbHelper.COLUMN_DATUM, formattedDate);
 
-                //StringRequest(method, url, responseListener, errorListener){anon}  <-- 4 Parameter + 1 anon Class
-                StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
-                        new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-                                Toast.makeText(MorgenlandQR.this, "Response: "+response, Toast.LENGTH_SHORT).show();
-                            }
-
-                        }, new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                Toast.makeText(MorgenlandQR.this, "Volley error: "+error.toString(), Toast.LENGTH_LONG).show();
+                            Long insertId = db.insert(DbHelper.TABLE_QRText, null, contentValues);
+                            if (insertId == -1) {
+                                Toast.makeText(MorgenlandQR.this, "Fehler, konnte Daten nicht local speichern", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(MorgenlandQR.this, "Daten gespeichert. ID: " + insertId, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, qrText, Toast.LENGTH_SHORT).show();
+                                arrayList.add(qrText); //1.Add Item To Array
+                                listAdapter.notifyDataSetChanged(); //2.Notify Adapter( update ListView )
                             }
                         }
-                )
-                {     //anonymous Class
-                        @Override  //override POST Parameters
-                        protected Map<String, String> getParams(){
-                            Map<String, String> params = new HashMap<String, String>();
-                            //****NEU: loop through arrayList -> Fill params with arrayList-elements: params.put(""+i, arrayList[i])
-                            //-> send params to server
-                            params.put("qrText", qrText);
-                            return params;
-                        }
-                };
-
-                //Execute Request
-                queue.add(stringRequest);
-                //*END
+                    scan_anzahl.setText("Scan Anzahl: "+arrayList.size());
+                    cursor.close();
             }
         }else {
             super.onActivityResult(requestCode, resultCode, data);

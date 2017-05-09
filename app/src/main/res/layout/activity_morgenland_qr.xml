@@ -61,16 +61,18 @@
         android:layout_height="48dp"
         android:layout_marginBottom="33dp"
         android:layout_marginEnd="30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
         android:layout_marginStart="30dp"
-        android:text="Scan and Send To-Server"
+        android:text="SCAN"
+        android:textAlignment="center"
+        android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/showDB_btn"
         tools:layout_constraintBottom_creator="1"
         tools:layout_constraintLeft_creator="1"
-        tools:layout_constraintRight_creator="1"
-        android:layout_marginLeft="30dp"
-        app:layout_constraintRight_toLeftOf="@+id/showDB_btn"
-        android:layout_marginRight="30dp" />
+        tools:layout_constraintRight_creator="1" />
 
     <LinearLayout
         android:layout_width="361dp"
@@ -99,7 +101,7 @@
     </LinearLayout>
 
     <Button
-        android:id="@+id/save_btn"
+        android:id="@+id/sync_btn"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="94dp"
         android:layout_height="57dp"
@@ -108,16 +110,16 @@
         android:layout_marginLeft="112dp"
         android:layout_marginRight="104dp"
         android:layout_marginStart="112dp"
-        android:text="Save"
+        android:text="Sync"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/scan_btn"
         app:layout_constraintHorizontal_bias="0.666"
-        tools:layout_constraintBottom_creator="1"
-        tools:layout_constraintRight_creator="1"
+        app:layout_constraintLeft_toLeftOf="@+id/toggleButtonIN"
         app:layout_constraintRight_toRightOf="@+id/toggleButtonOUT"
+        tools:layout_constraintBottom_creator="1"
         tools:layout_constraintLeft_creator="1"
-        app:layout_constraintLeft_toLeftOf="@+id/toggleButtonIN" />
+        tools:layout_constraintRight_creator="1" />
 
     <Button
         android:id="@+id/showDB_btn"
@@ -126,7 +128,7 @@
         android:layout_marginBottom="33dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
-        android:text="show Table"
+        android:text="local Table"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         tools:layout_constraintBottom_creator="1" />
