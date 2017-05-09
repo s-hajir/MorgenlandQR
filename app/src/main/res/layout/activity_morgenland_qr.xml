@@ -73,8 +73,8 @@
         android:layout_marginRight="30dp" />
 
     <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="311dp"
+        android:layout_width="361dp"
+        android:layout_height="279dp"
         android:orientation="horizontal"
         android:layout_marginRight="8dp"
         app:layout_constraintRight_toRightOf="parent"
@@ -86,9 +86,13 @@
         tools:layout_constraintLeft_creator="1"
         app:layout_constraintHorizontal_bias="0.0"
         android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/textView2">
+        app:layout_constraintBottom_toTopOf="@+id/textView2"
+        tools:layout_editor_absoluteY="48dp"
+        tools:layout_editor_absoluteX="15dp"
+        android:id="@+id/linearLayout">
 
         <ListView
+            android:longClickable="true"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/theListView"/>
@@ -126,4 +130,32 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         tools:layout_constraintBottom_creator="1" />
+
+    <TextView
+        android:id="@+id/scan_anzahl"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Scan Anzahl: "
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/clear_table_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="0dp"
+        android:text="Clear Table"
+        android:textColor="@color/zxing_viewfinder_laser"
+        app:layout_constraintHorizontal_bias="0.51"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/scan_anzahl"
+        app:layout_constraintTop_toTopOf="parent" />
 </android.support.constraint.ConstraintLayout>
