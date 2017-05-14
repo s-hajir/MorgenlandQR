@@ -74,54 +74,46 @@ public class ScanIn_a extends AppCompatActivity {
             public void onClick(View v) {
                 IntentIntegrator intentIntegrator = new IntentIntegrator(activity);
                 intentIntegrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES);
-                intentIntegrator.setPrompt("ScanIN");
+                intentIntegrator.setPrompt("Scan IN");
                 intentIntegrator.setCameraId(0);
                 intentIntegrator.setBeepEnabled(true);
                 intentIntegrator.setBarcodeImageEnabled(false);
                 intentIntegrator.initiateScan();
             }
         });
-
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
         IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-        if (result != null){
-            if (result.getContents() == null){
+        if (result != null) {
+            if (result.getContents() == null) {
                 Toast.makeText(this, "Du hast das Scannen abgebrochen", Toast.LENGTH_SHORT).show();
             }else {
                 final String qrText = result.getContents();
-                //BEI jedem ScanIN -> prüfen ob qrText in Tabelle existiert -> if yes: nix machen
-                //                                                        ->if no: in Tabelle eintragen
-                Calendar c = Calendar.getInstance();
-                SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
-                String formattedDate = df.format(c.getTime());
-
-                String [] columns = {"qrText"};
-                //**SELECT qrText FROM QRText WHERE qrText = 'someText'
+                String [] columns = {"qrText"}; //check if it exists in table
                 Cursor cursor = db.query(DbHelper.TABLE_QRText, columns, DbHelper.COLUMN_QRText+" = '"+qrText+"'",
                         null,null,null,null);
-
-                if (cursor.moveToFirst()){ //false: if cursor is emtpy. true: if cursor not empty & operation is a succes
-                    Toast.makeText(ScanIn_a.this, "already in table: "+cursor.getString(0), Toast.LENGTH_SHORT).show();
-                }else {
+                if (cursor.moveToFirst()){ //false: if cursor is emtpy
+                    Toast.makeText(ScanIn_a.this, "In DB vorhanden: "+cursor.getString(0), Toast.LENGTH_SHORT).show();
                     ContentValues contentValues = new ContentValues();
-                    contentValues.put(DbHelper.COLUMN_QRText, qrText);
-                    contentValues.put(DbHelper.COLUMN_DATUM, formattedDate);
+                    contentValues.put(DbHelper.COLUMN_SCANOUT, "-");
+                    contentValues.put(DbHelper.COLUMN_SCANIN, "scanned-in");
+                    int rowsAffected = db.update(DbHelper.TABLE_QRText,contentValues,DbHelper.COLUMN_QRText+" = '"+qrText+"'",null);
+                    Toast.makeText(ScanIn_a.this, "Items in DB markiert. Markierte Zeilen:  "+rowsAffected, Toast.LENGTH_SHORT).show();
 
-                    Long insertId = db.insert(DbHelper.TABLE_QRText, null, contentValues);
-                    if (insertId == -1) {
-                        Toast.makeText(ScanIn_a.this, "Fehler, konnte Daten nicht local speichern", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(ScanIn_a.this, "Daten gespeichert. ID: " + insertId, Toast.LENGTH_SHORT).show();
-                        Toast.makeText(this, qrText, Toast.LENGTH_SHORT).show();
-                        arrayList.add("neu: ");
-                        arrayList.add(qrText); //1.Add Item To Array
-                        listAdapter.notifyDataSetChanged(); //2.Notify Adapter( update ListView )
-                    }
+                    arrayList.add("markiert:");
+                    arrayList.add(qrText);
+                    listAdapter.notifyDataSetChanged();
+                }else {
+                    Toast.makeText(ScanIn_a.this, "Achtung, dieses Item ist nicht in der Datenbank vorhanden", Toast.LENGTH_SHORT).show();
+                    arrayList.add("Scan IN ungültig:");
+                    arrayList.add(result.getContents());
+                    listAdapter.notifyDataSetChanged();
                 }
-                scan_in_anzahl.setText("Scan Anzahl: "+arrayList.size());
+
+
+                scan_in_anzahl.setText("Scan Anzahl: "+(arrayList.size()/2));
                 cursor.close();
             }
         }else {

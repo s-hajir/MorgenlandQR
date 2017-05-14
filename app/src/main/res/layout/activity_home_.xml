@@ -9,17 +9,17 @@
     <Button
         android:id="@+id/home_search_btn"
         style="@style/Base.TextAppearance.AppCompat.Widget.Button.Borderless.Colored"
-        android:layout_width="137dp"
-        android:layout_height="35dp"
-        android:layout_marginBottom="50dp"
+        android:layout_width="130dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="44dp"
         android:layout_marginEnd="106dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="106dp"
         android:layout_marginStart="8dp"
-        android:text="Search"
+        android:text="Suchen"
         android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.06"
+        app:layout_constraintHorizontal_bias="0.057"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
 
@@ -45,7 +45,9 @@
             android:id="@+id/home_listview"
             android:layout_width="match_parent"
             android:layout_height="370dp"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:animateLayoutChanges="true"
+            android:scrollbars="horizontal|vertical" />
     </LinearLayout>
 
     <EditText
@@ -64,20 +66,19 @@
 
     <Button
         android:id="@+id/home_show_table"
-        android:layout_width="137dp"
-        android:layout_height="35dp"
+        android:layout_width="130dp"
+        android:layout_height="40dp"
         android:layout_marginBottom="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginTop="8dp"
         android:text="Zeige Tabelle"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.028"
+        app:layout_constraintHorizontal_bias="0.033"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/home_search_btn"
-        app:layout_constraintVertical_bias="0.0"
-        tools:layout_editor_absoluteY="474dp" />
+        app:layout_constraintVertical_bias="0.666" />
 
     <TextView
         android:id="@+id/home"
@@ -132,7 +133,6 @@
         android:layout_marginBottom="7dp"
         android:layout_marginRight="29dp"
         android:text="Liste Anzahl:"
-        android:textColor="@color/zxing_result_view"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent" />

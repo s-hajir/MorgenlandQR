@@ -93,11 +93,19 @@
         tools:layout_editor_absoluteX="15dp"
         android:id="@+id/linearLayout">
 
+        <TextView
+            android:id="@+id/listItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:scrollHorizontally="true"
+            android:maxLines="1"/>
+
         <ListView
             android:longClickable="true"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/theListView"/>
+            android:id="@+id/theListView">
+        </ListView>
     </LinearLayout>
 
     <Button
@@ -142,6 +150,7 @@
         android:layout_marginRight="8dp"
         android:layout_marginTop="8dp"
         android:text="Scan Anzahl: "
+        android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

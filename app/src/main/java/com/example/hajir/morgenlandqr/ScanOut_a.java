@@ -74,7 +74,7 @@ public class ScanOut_a extends AppCompatActivity {
             public void onClick(View v) {
                 IntentIntegrator intentIntegrator = new IntentIntegrator(activity);
                 intentIntegrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES);
-                intentIntegrator.setPrompt("ScanOUT");
+                intentIntegrator.setPrompt("Scan OUT");
                 intentIntegrator.setCameraId(0);
                 intentIntegrator.setBeepEnabled(true);
                 intentIntegrator.setBarcodeImageEnabled(false);
@@ -91,8 +91,6 @@ public class ScanOut_a extends AppCompatActivity {
                 Toast.makeText(this, "Du hast das Scannen abgebrochen", Toast.LENGTH_SHORT).show();
             }else {
                 final String qrText = result.getContents();
-                //BEI jedem ScanOUT -> prüfen ob qrText in Tabelle existiert -> if yes: löschen
-                //                                                        ->if no: Nutzer informieren
                 String [] columns = {"qrText"};
                 //**SELECT qrText FROM QRText WHERE qrText = 'someText'
                 Cursor cursor = db.query(DbHelper.TABLE_QRText, columns, DbHelper.COLUMN_QRText+" = '"+qrText+"'",
@@ -100,15 +98,25 @@ public class ScanOut_a extends AppCompatActivity {
 
                 if (cursor.moveToFirst()){ //false: if cursor is emtpy. true: if cursor not empty & operation is a succes
                     Toast.makeText(ScanOut_a.this, "In DB vorhanden: "+cursor.getString(0), Toast.LENGTH_SHORT).show();
-                    int rowsDeleted = db.delete(DbHelper.TABLE_QRText,DbHelper.COLUMN_QRText+" = '"+qrText+"'",null);
-                    Toast.makeText(ScanOut_a.this, "Anzahl Items aus DB gelöscht:  "+rowsDeleted, Toast.LENGTH_SHORT).show();
-                    arrayList.add("gelöscht:");
+                    //UPDATE QRString SET scanout='scanned-out' WHERE qrText = '1223-Gabbeh90x60'
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(DbHelper.COLUMN_SCANOUT, "scanned-out");
+                    contentValues.put(DbHelper.COLUMN_SCANIN, "-");
+                    int rowsAffected = db.update(DbHelper.TABLE_QRText,contentValues,DbHelper.COLUMN_QRText+" = '"+qrText+"'",null);
+                    Toast.makeText(ScanOut_a.this, "Items in DB markiert. RowsAffected:  "+rowsAffected, Toast.LENGTH_SHORT).show();
+
+                    arrayList.add("markiert:");
                     arrayList.add(qrText); //1.Add Item To Array
                     listAdapter.notifyDataSetChanged(); //2.Notify Adapter( update ListView )
                 }else {
-                    Toast.makeText(ScanOut_a.this, "Fehler, dieses Item ist nicht in der Datenbank vorhanden", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ScanOut_a.this, "Achtung, dieses Item ist nicht in der Datenbank vorhanden", Toast.LENGTH_SHORT).show();
+                    //Code nur für Kabir Demo
+                    arrayList.add("Scan OUT ungültig:");
+                    arrayList.add(result.getContents());
+                    listAdapter.notifyDataSetChanged();
+                    //Demo Ende
                 }
-                scan_out_anzahl.setText("Scan Anzahl: "+arrayList.size());
+                scan_out_anzahl.setText("Scan Anzahl: "+(arrayList.size()/2));
                 cursor.close();
             }
         }else {

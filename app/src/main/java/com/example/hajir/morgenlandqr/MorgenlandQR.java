@@ -162,7 +162,7 @@ public class MorgenlandQR extends AppCompatActivity {
                         }else {
                             ContentValues contentValues = new ContentValues();
                             contentValues.put(DbHelper.COLUMN_QRText, qrText);
-                            contentValues.put(DbHelper.COLUMN_DATUM, formattedDate);
+                            //contentValues.put(DbHelper.COLUMN_DATUM, formattedDate);
 
                             Long insertId = db.insert(DbHelper.TABLE_QRText, null, contentValues);
                             if (insertId == -1) {
