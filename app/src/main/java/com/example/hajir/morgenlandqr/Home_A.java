@@ -9,9 +9,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,6 +32,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class Home_A extends AppCompatActivity {
@@ -42,8 +45,8 @@ public class Home_A extends AppCompatActivity {
     private EditText home_serachword;
     private TextView home_liste_anzahl;
 
-    ArrayAdapter<String> listAdapter;
-    ArrayList<String> arrayList;
+    ArrayAdapter<Teppich> mylistAdapter;
+    private List<Teppich> teppichListe;
     ArrayList<String> scannedOutList;
     ArrayList<String> scannedInList;
     SQLiteDatabase db;
@@ -64,12 +67,24 @@ public class Home_A extends AppCompatActivity {
         home_liste_anzahl = (TextView) findViewById(R.id.home_liste_anzahl);
         //**ListView
         listView = (ListView) findViewById(R.id.home_listview);
-        arrayList = new ArrayList<>();
+        teppichListe = new ArrayList<Teppich>();
         scannedOutList = new ArrayList<>();
         scannedInList = new ArrayList<>();
-        //TextView t = android.R.layout.simple_expandable_list_item_1;android.R.layout.simple_list_item_1
-        listAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1 , arrayList);
-        listView.setAdapter(listAdapter);
+
+        mylistAdapter = new MyListAdapter(this, teppichListe);
+        listView.setAdapter(mylistAdapter);
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                String s = teppichListe.get(position).getQrString();
+                Log.d("ItemclickListener ","    ::::::listView");
+                //*Fire Intent
+                Intent imgPreviewIntent = new Intent(Home_A.this, ImagePreview.class);
+                imgPreviewIntent.putExtra("qrText", s);
+                startActivity(imgPreviewIntent);
+                return true;
+            }
+        });
 
         //*START DB Connection
         db = new DbHelper(this).getWritableDatabase();
@@ -121,7 +136,7 @@ public class Home_A extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        //Fill arrayList via DB-> fill ListView via arrayList
+        //Fill arrayList via DB-> display it via ListView
         //Fill scannedOutList and scannedInList via DB
         updateListViewViaDB();
     }
@@ -142,7 +157,7 @@ public class Home_A extends AppCompatActivity {
         int scanin = cursor.getColumnIndex(DbHelper.COLUMN_SCANIN);
         int auf_lager = cursor.getColumnIndex(DbHelper.COLUMN_AUFLAGER);
 
-        arrayList.clear();
+        teppichListe.clear();
         scannedOutList.clear();
         scannedInList.clear();
         Toast.makeText(Home_A.this,"Select Cursorsize:"+cursor.getCount(),Toast.LENGTH_SHORT).show();
@@ -155,25 +170,31 @@ public class Home_A extends AppCompatActivity {
                     String out = cursor.getString(scanout);
                     if(out.contains("scanned-out")){
                         //'scanned-out', '-'   <--values of scanout and scanin column
-                        arrayList.add(cursor.getString(qrTextIndex)+" -out");
-                        scannedOutList.add(cursor.getString(qrTextIndex));
+                        String qrText = cursor.getString(qrTextIndex);
+                        teppichListe.add(new Teppich(qrText+" -out"));
+                        scannedOutList.add(qrText);
                     }else if(out.contains("-")) {
                         //'-', 'scanned-in'    <--values of scanout and scanin column
-                        arrayList.add(cursor.getString(qrTextIndex)+" -in");
-                        scannedInList.add(cursor.getString(qrTextIndex));
+                        String qrText = cursor.getString(qrTextIndex);
+                        teppichListe.add(new Teppich(qrText+" -in"));
+                        scannedInList.add(qrText);
                     }
                 }else {
                     if(auf_Lager != null){
-                        arrayList.add(cursor.getString(qrTextIndex)+" **auf-Lager: "+auf_Lager);
-                    }else arrayList.add(cursor.getString(qrTextIndex));
+                        String qrText = cursor.getString(qrTextIndex);
+                        teppichListe.add(new Teppich(qrText+" **auf-Lager: "+auf_Lager));
+                    }else{
+                        String qrText = cursor.getString(qrTextIndex);
+                        teppichListe.add(new Teppich(qrText));
+                    }
                 }
             }
             Toast.makeText(Home_A.this,"scanOut: "+scannedOutList.size()+", scanIn: "+scannedInList.size(),Toast.LENGTH_LONG).show();
         }else{
             Toast.makeText(Home_A.this,"Tabelle ist leer",Toast.LENGTH_SHORT).show();
         }
-        listAdapter.notifyDataSetChanged();
-        home_liste_anzahl.setText("Scan Anzahl: "+arrayList.size());
+        mylistAdapter.notifyDataSetChanged();
+        home_liste_anzahl.setText("Scan Anzahl: "+teppichListe.size());
         cursor.close();
     }
     public void searchForKeywordDisplayResult(String keyword){
@@ -185,30 +206,41 @@ public class Home_A extends AppCompatActivity {
         int scanin = cursor.getColumnIndex(DbHelper.COLUMN_SCANIN);
         int auf_lager = cursor.getColumnIndex(DbHelper.COLUMN_AUFLAGER);
 
-        arrayList.clear();
+        //arrayList.clear();
+        teppichListe.clear();
         if (cursor.getCount() > 0){ //number of Rows in cursor
             while (cursor.moveToNext()){
                 if (cursor.getString(scanout) != null ){
                     //scanned-out found
-                    arrayList.add(cursor.getString(qrTextIndex)+" -out");
+                    //arrayList.add(cursor.getString(qrTextIndex)+" -out");
+                    String qrText = cursor.getString(qrTextIndex)+" -out";
+                    teppichListe.add(new Teppich(qrText));
                 }
                 else if (cursor.getString(scanin) != null ){
                     //scanned-in found
-                    arrayList.add(cursor.getString(qrTextIndex)+" -in");
+                    String qrText = cursor.getString(qrTextIndex)+" -in";
+                    teppichListe.add(new Teppich(qrText));
                 }
                 else{
                     //normal found
                     String auf_Lager = cursor.getString(auf_lager);
                     if (auf_Lager != null){
-                        arrayList.add(cursor.getString(qrTextIndex)+" **auf-Lager: "+auf_Lager);
-                    }else arrayList.add(cursor.getString(qrTextIndex));
+                        //arrayList.add(cursor.getString(qrTextIndex)+" **auf-Lager: "+auf_Lager);
+                        String qrText = cursor.getString(qrTextIndex)+" **auf-Lager: "+auf_Lager;
+                        teppichListe.add(new Teppich(qrText));
+                    }else{
+                        //arrayList.add(cursor.getString(qrTextIndex));
+                        String qrText = cursor.getString(qrTextIndex);
+                        teppichListe.add(new Teppich(qrText));
+                    }
+
                 }
             }
         }else{
             Toast.makeText(Home_A.this,"Leeres Suchergebnis",Toast.LENGTH_SHORT).show();
         }
-        listAdapter.notifyDataSetChanged();
-        home_liste_anzahl.setText("Scan Anzahl: "+arrayList.size());
+        mylistAdapter.notifyDataSetChanged();
+        home_liste_anzahl.setText("Scan Anzahl: "+teppichListe.size());
         cursor.close();
     }
 
@@ -299,9 +331,9 @@ public class Home_A extends AppCompatActivity {
             @Override
             protected Map<String, String> getParams(){
                 Map<String, String> params = new HashMap<String, String>();
-                params.put("scan-out","scan-out"); //Notify Server: this is a scan-out request
+                params.put("scan-out","scan-out"); //Notify Server: this is a scan-out request. First Post Param is 'scan-out: scan-out'
                 //Fill params
-                for(int i=0;i<scannedOutList.size();i++){
+                for(int i=0;i<scannedOutList.size();i++){ //All following Params are '1: qrString1, 2: qrString2' etc.
                     params.put(""+i, scannedOutList.get(i));
                 }
                 return params;
@@ -325,7 +357,8 @@ public class Home_A extends AppCompatActivity {
                         try {
                             // clear local table content -> insert new values
                             db.delete(DbHelper.TABLE_QRText,null,null); //clear Table
-                            arrayList.clear();
+                            //arrayList.clear();
+                            teppichListe.clear();
                             ContentValues contentValues = new ContentValues();
 
                             JSONArray jsonArray = new JSONArray(response);
@@ -343,11 +376,12 @@ public class Home_A extends AppCompatActivity {
                                 contentValues.put(DbHelper.COLUMN_QRText, jsonArrayElementProp1);   //insert new values
                                 contentValues.put(DbHelper.COLUMN_AUFLAGER, jsonArrayElementProp3); //empty string will also be inserted
                                 Long insertId = db.insert(DbHelper.TABLE_QRText, null, contentValues);
-                                arrayList.add(jsonArrayElementProp1+" **auf-Lager: "+jsonArrayElementProp3);
+
+                                teppichListe.add(new Teppich(jsonArrayElementProp1+" **auf-Lager: "+jsonArrayElementProp3));
                             }
-                            home_liste_anzahl.setText("Scan Anzahl: "+arrayList.size());
-                            listAdapter.notifyDataSetChanged();
-                            Toast.makeText(Home_A.this,arrayList.size()+" Artikel vom Server erhalten",Toast.LENGTH_LONG).show();
+                            home_liste_anzahl.setText("Scan Anzahl: "+teppichListe.size());
+                            mylistAdapter.notifyDataSetChanged();
+                            Toast.makeText(Home_A.this,teppichListe.size()+" Artikel vom Server erhalten",Toast.LENGTH_LONG).show();
                         }catch (JSONException e) {
                             Toast.makeText(Home_A.this, "OnResponse: JSONArray parse Problem", Toast.LENGTH_SHORT).show();
                             e.printStackTrace();
@@ -390,7 +424,8 @@ public class Home_A extends AppCompatActivity {
                         try {
                             // clear local table content -> insert new values
                             db.delete(DbHelper.TABLE_QRText,null,null); //clear Table
-                            arrayList.clear();
+                            //arrayList.clear();
+                            teppichListe.clear();
                             ContentValues contentValues = new ContentValues();
 
                             JSONArray jsonArray = new JSONArray(response);
@@ -408,11 +443,11 @@ public class Home_A extends AppCompatActivity {
                                 contentValues.put(DbHelper.COLUMN_QRText, jsonArrayElementProp1);   //insert new values
                                 contentValues.put(DbHelper.COLUMN_AUFLAGER, jsonArrayElementProp3); //empty string will also be inserted
                                 Long insertId = db.insert(DbHelper.TABLE_QRText, null, contentValues);
-                                arrayList.add(jsonArrayElementProp1+" **auf-Lager: "+jsonArrayElementProp3);
+                                teppichListe.add(new Teppich(jsonArrayElementProp1+" **auf-Lager: "+jsonArrayElementProp3));
                             }
-                            home_liste_anzahl.setText("Scan Anzahl: "+arrayList.size());
-                            listAdapter.notifyDataSetChanged();
-                            Toast.makeText(Home_A.this,arrayList.size()+" Artikel vom Server erhalten",Toast.LENGTH_LONG).show();
+                            home_liste_anzahl.setText("Scan Anzahl: "+teppichListe.size());
+                            mylistAdapter.notifyDataSetChanged();
+                            Toast.makeText(Home_A.this,teppichListe.size()+" Artikel vom Server erhalten",Toast.LENGTH_LONG).show();
                         }catch (JSONException e) {
                             Toast.makeText(Home_A.this, "OnResponse: JSONArray parse Problem", Toast.LENGTH_SHORT).show();
                             e.printStackTrace();
@@ -434,76 +469,5 @@ public class Home_A extends AppCompatActivity {
             }
         };
         queue.add(stringRequest);
-    }
-    void sync2(){
-        //1.Send Scan-Out Items to Server
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://morgenland-teppiche.com/warenbestand/script.php";
-
-        //StringRequest(method, url, responseListener, errorListener){anon}
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        try {
-                            JSONArray jsonArray = new JSONArray(response);
-                            int jsonArrayLength = jsonArray.length();
-                            //Iterate through objArray
-                            for (int i=0; i<jsonArrayLength;i++){
-                                JSONArray jsonArrayElement = (JSONArray) jsonArray.get(i);
-                                //JSONArray jsonArrayElement = jsonArray.getJSONArray(i);  <---2.Versuch
-                                //get 3 properties of our arrayElement
-                                String jsonArrayElementProp0 = jsonArrayElement.optString(0);
-                                String jsonArrayElementProp1 = jsonArrayElement.optString(1);
-                                String jsonArrayElementProp2 = jsonArrayElement.optString(2);
-                                String jsonArrayElementProp3 = jsonArrayElement.optString(3);
-                                Toast.makeText(Home_A.this,"jsonArrayElement---"+ jsonArrayElement.toString()+" jsonArrayElementPR0---"+ jsonArrayElementProp0
-                                        +" jsonArrayElementPR1---"+ jsonArrayElementProp1 +" jsonArrayElementPR2---"+ jsonArrayElementProp2
-                                        +" jsonArrayElementPR3---"+jsonArrayElementProp3
-                                        , Toast.LENGTH_SHORT).show();
-                            }
-                        } catch (JSONException e) {
-                            Toast.makeText(Home_A.this, "OnResponse: JSONArray parse Problem", Toast.LENGTH_SHORT);
-                            e.printStackTrace();
-                        }
-                    }
-
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast.makeText(Home_A.this, "Volley error: "+error.toString(), Toast.LENGTH_LONG).show();
-            }
-        }
-        )
-        {     //anon Class
-            @Override
-            protected Map<String, String> getParams(){
-                Map<String, String> params = new HashMap<String, String>();
-                //get Table contents -> Fill params
-                String [] columns = {"qrText"};
-                Cursor cursor = db.query(DbHelper.TABLE_QRText, columns, DbHelper.COLUMN_SCANOUT+" = 'scanned-out'",
-                        null,null,null,null);
-                if (cursor.getCount() > 0){
-                    params.put("scan-out","scan-out"); //Info for serverside
-                    int i=0;
-                    int qrTxtIndex = cursor.getColumnIndex(DbHelper.COLUMN_QRText);
-                    while (cursor.moveToNext()){
-                        i++;
-                        params.put("qrText"+i, cursor.getString(qrTxtIndex));
-                        Log.d("post param put: "+i, cursor.getString(qrTxtIndex));
-                    }
-                }else {
-                    //Toast.makeText(Home_A.this, "No Items with scanned-out tag ", Toast.LENGTH_SHORT).show();
-                    //RAUSNEHMEN !!
-                    params.put("scan-out","scan-out");
-                }
-                cursor.close();
-                return params;
-            }
-        };
-        queue.add(stringRequest);
-
-        //2.Receive 'OK' from Server ->Receive updated Table Items ->update local Table(clear & refill)
-
     }
 }

@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -46,6 +47,12 @@ public class ScanIn_a extends AppCompatActivity {
         arrayList = new ArrayList<>();
         listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, arrayList);
         scan_in_listview.setAdapter(listAdapter);
+        scan_in_listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(ScanIn_a.this, "ItemClick", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         //*START DB Connection
         db = new DbHelper(this).getWritableDatabase();
